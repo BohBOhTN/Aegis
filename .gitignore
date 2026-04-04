@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.DS_Store
+coverage/
+*.log
+
+# Private Internal Documentation (Strictly Local)
+/docs/
+/Proposition_Commerciale_ERP.html
