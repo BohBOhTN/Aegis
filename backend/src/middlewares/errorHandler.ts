@@ -18,6 +18,6 @@ export const errorHandler = (
     res.status(statusCode).json({
         success: false,
         message,
-        errors: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+        errors: (process.env.NODE_ENV === 'development' && !(err instanceof AppError)) ? err.stack : undefined,
     });
 };

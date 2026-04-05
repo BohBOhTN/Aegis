@@ -8,3 +8,5 @@ coverage/
 # Private Internal Documentation (Strictly Local)
 /docs/
 /Proposition_Commerciale_ERP.html
+/backend/issues/
+/backend/prs/
