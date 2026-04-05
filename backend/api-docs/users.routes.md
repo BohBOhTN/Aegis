@@ -1,7 +1,7 @@
 # Users Resource Endpoints
 
 ## 1. Global Genesis Initialization (SuperAdmin Seed)
-**Endpoint:** `/api/users/setup`
+**Endpoint:** `/api/v1/users/setup`
 **Method:** `POST`
 **Access:** `Public` (Self-Destructing)
 
@@ -47,7 +47,7 @@ Creates the paramount `SuperAdmin` operational identity and injects it organical
 ---
 
 ## 2. Retrieve All Active Matrix Terminals
-**Endpoint:** `/api/users/`
+**Endpoint:** `/api/v1/users/`
 **Method:** `GET`
 **Access:** `Protected` (Requires JWT Bearer Header)
 **Role Clearance:** `SuperAdmin`, `Admin`

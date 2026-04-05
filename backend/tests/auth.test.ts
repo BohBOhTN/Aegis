@@ -11,7 +11,7 @@ describe('Authentication API Endpoint Matrix', () => {
     });
 
     it('should securely reject login attempts missing payload credentials natively', async () => {
-        const res = await request(app).post('/api/auth/login').send({
+        const res = await request(app).post('/api/v1/auth/login').send({
             email: 'admin@aegris.com'
         });
 
@@ -35,7 +35,7 @@ describe('Authentication API Endpoint Matrix', () => {
             }
         } as any);
 
-        const res = await request(app).post('/api/auth/login').send({
+        const res = await request(app).post('/api/v1/auth/login').send({
             email: 'admin@aegris.com',
             password: 'secretPass123'
         });

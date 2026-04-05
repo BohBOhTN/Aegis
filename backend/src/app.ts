@@ -23,8 +23,8 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' }));
 app.use(hpp());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: 'OK' });

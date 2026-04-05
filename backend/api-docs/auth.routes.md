@@ -1,7 +1,7 @@
 # Authentication Service Endpoints
 
 ## 1. User Verification & JWT Exchange
-**Endpoint:** `/api/auth/login`
+**Endpoint:** `/api/v1/auth/login`
 **Method:** `POST`
 **Access:** `Public`
 
