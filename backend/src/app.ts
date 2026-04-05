@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
+import authRoutes from './routes/auth.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { AppError } from './utils/AppError';
 
@@ -20,6 +21,8 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' }));
 app.use(hpp());
+
+app.use('/api/auth', authRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: 'OK' });
