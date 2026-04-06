@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 // -----------------------------------------------------------------------------
@@ -18,7 +18,7 @@ model Role {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  users       User[]
+  users User[]
 
   @@map("roles")
 }
@@ -33,8 +33,9 @@ model User {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  auditLogs    AuditLog[]
+  role      Role                @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  auditLogs AuditLog[]
+  movements InventoryMovement[]
 
   @@map("users")
 }
@@ -51,7 +52,7 @@ model AuditLog {
 
   // If a user is hard deleted, logs should remain for security, but users are soft-deleted.
   // Using Restrict prevents deleting users who have logs associated.
-  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@map("audit_logs")
 }
@@ -77,23 +78,25 @@ model Client {
   updatedAt       DateTime   @updatedAt
   deletedAt       DateTime?
 
-  documents       Document[]
-  payments        Payment[]
+  documents Document[]
+  payments  Payment[]
 
   @@map("clients")
 }
 
 model Supplier {
-  id          String    @id @default(uuid())
-  companyName String
-  contactName String?
-  phone       String?
-  email       String?   @unique
-  address     String?
-  balanceDue  Decimal   @default(0.00) @db.Decimal(10, 3)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id                String             @id @default(uuid())
+  companyName       String
+  contactName       String?
+  phone             String?
+  email             String?            @unique
+  address           String?
+  balanceDue        Decimal            @default(0.00) @db.Decimal(10, 3)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  purchaseDocuments PurchaseDocument[]
+  supplierPayments  SupplierPayment[]
 
   @@map("suppliers")
 }
@@ -101,11 +104,69 @@ model Supplier {
 // -----------------------------------------------------------------------------
 // Catalog & Stock Infrastructure
 // -----------------------------------------------------------------------------
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Unit {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  symbol    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  products Product[]
+
+  @@map("units")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  url       String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model PriceHistory {
+  id               String   @id @default(uuid())
+  productId        String
+  oldPurchasePrice Decimal  @db.Decimal(10, 3)
+  newPurchasePrice Decimal  @db.Decimal(10, 3)
+  oldSellingPrice  Decimal  @db.Decimal(10, 3)
+  newSellingPrice  Decimal  @db.Decimal(10, 3)
+  reason           String?
+  changedByUserId  String?
+  createdAt        DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("price_history")
+}
+
 model Product {
   id            String    @id @default(uuid())
   barcode       String?   @unique
   name          String
-  category      String?
+  categoryId    String?
+  unitId        String?
   purchasePrice Decimal   @db.Decimal(10, 3)
   sellingPrice  Decimal   @db.Decimal(10, 3)
   minThreshold  Decimal   @default(0.00) @db.Decimal(10, 3)
@@ -114,9 +175,16 @@ model Product {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  inventory     InventoryLevel[]
-  movements     InventoryMovement[]
-  documentLines DocumentLine[]
+  category     Category?      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  unit         Unit?          @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  images       ProductImage[]
+  priceHistory PriceHistory[]
+
+  warehouseStock WarehouseInventory[]
+  posStock       PosInventory[]
+  movements      InventoryMovement[]
+  documentLines  DocumentLine[]
+  purchaseLines  PurchaseDocumentLine[]
 
   @@map("products")
 }
@@ -130,7 +198,7 @@ model Warehouse {
   deletedAt DateTime?
 
   pos       PointOfSale[]
-  inventory InventoryLevel[]
+  inventory WarehouseInventory[]
 
   @@map("warehouses")
 }
@@ -143,22 +211,38 @@ model PointOfSale {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  warehouse Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  inventory PosInventory[]
 
   @@map("points_of_sale")
 }
 
-model InventoryLevel {
-  productId   String
-  warehouseId String
-  quantity    Decimal  @default(0.00) @db.Decimal(10, 3)
-  updatedAt   DateTime @updatedAt
+model WarehouseInventory {
+  productId    String
+  warehouseId  String
+  quantity     Decimal  @default(0.00) @db.Decimal(10, 3)
+  minThreshold Decimal? @db.Decimal(10, 3)
+  updatedAt    DateTime @updatedAt
 
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
 
   @@id([productId, warehouseId])
-  @@map("inventory_levels")
+  @@map("warehouse_inventory")
+}
+
+model PosInventory {
+  productId    String
+  posId        String
+  quantity     Decimal  @default(0.00) @db.Decimal(10, 3)
+  minThreshold Decimal? @db.Decimal(10, 3)
+  updatedAt    DateTime @updatedAt
+
+  product Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+  pos     PointOfSale @relation(fields: [posId], references: [id], onDelete: Restrict)
+
+  @@id([productId, posId])
+  @@map("pos_inventory")
 }
 
 enum MovementType {
@@ -169,21 +253,101 @@ enum MovementType {
 }
 
 model InventoryMovement {
-  id          String       @id @default(uuid())
-  productId   String
-  fromLoc     String?      
-  toLoc       String?      
-  quantity    Decimal      @db.Decimal(10, 3)
-  type        MovementType
-  timestamp   DateTime     @default(now())
+  id              String       @id @default(uuid())
+  productId       String
+  fromWarehouseId String?
+  fromPosId       String?
+  toWarehouseId   String?
+  toPosId         String?
+  quantity        Decimal      @db.Decimal(10, 3)
+  type            MovementType
+  description     String?
+  createdByUserId String? // Tracks the User who performed the action
+  timestamp       DateTime     @default(now())
 
-  product     Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  user    User?   @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
 
   @@map("inventory_movements")
 }
 
 // -----------------------------------------------------------------------------
-// Core Transactions & Financial Documents
+// Supplier Workflows (Goods Reception & Financials)
+// -----------------------------------------------------------------------------
+enum PurchaseDocumentType {
+  BON_COMMANDE
+  BON_RECEPTION
+  FACTURE_FOURNISSEUR
+}
+
+enum PurchaseStatus {
+  DRAFT
+  VALIDATED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+model PurchaseDocument {
+  id          String               @id @default(uuid())
+  documentNum String               @unique
+  type        PurchaseDocumentType
+  status      PurchaseStatus       @default(DRAFT)
+  supplierId  String
+
+  receivedAtWarehouseId String?
+  receivedAtPosId       String?
+
+  totalHT    Decimal @default(0.00) @db.Decimal(10, 3)
+  tva        Decimal @default(0.00) @db.Decimal(10, 3)
+  totalTTC   Decimal @default(0.00) @db.Decimal(10, 3)
+  amountPaid Decimal @default(0.00) @db.Decimal(10, 3)
+
+  issueDate   DateTime  @default(now())
+  dueDate     DateTime?
+  documentUrl String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  supplier Supplier               @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  lines    PurchaseDocumentLine[]
+  payments SupplierPayment[]
+
+  @@map("purchase_documents")
+}
+
+model PurchaseDocumentLine {
+  id                 String  @id @default(uuid())
+  purchaseDocumentId String
+  productId          String
+  quantity           Decimal @db.Decimal(10, 3)
+  unitPrice          Decimal @db.Decimal(10, 3)
+  totalPrice         Decimal @db.Decimal(10, 3)
+
+  purchaseDoc PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id], onDelete: Cascade)
+  product     Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("purchase_document_lines")
+}
+
+model SupplierPayment {
+  id                 String   @id @default(uuid())
+  purchaseDocumentId String
+  supplierId         String
+  amount             Decimal  @db.Decimal(10, 3)
+  method             String
+  date               DateTime @default(now())
+
+  purchaseDoc PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id], onDelete: Restrict)
+  supplier    Supplier         @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  @@map("supplier_payments")
+}
+
+// -----------------------------------------------------------------------------
+// Core Client Transactions & Financial Documents
 // -----------------------------------------------------------------------------
 enum DocumentType {
   DEVIS
@@ -201,39 +365,39 @@ enum DocumentStatus {
 }
 
 model Document {
-  id            String         @id @default(uuid())
-  documentNum   String         @unique
-  type          DocumentType
-  status        DocumentStatus @default(DRAFT)
-  clientId      String
-  totalHT       Decimal        @default(0.00) @db.Decimal(10, 3)
-  tva           Decimal        @default(0.00) @db.Decimal(10, 3)
-  timbreFiscal  Decimal        @default(1.00) @db.Decimal(10, 3)
-  totalTTC      Decimal        @default(0.00) @db.Decimal(10, 3)
-  issueDate     DateTime       @default(now())
-  dueDate       DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  deletedAt     DateTime?
+  id           String         @id @default(uuid())
+  documentNum  String         @unique
+  type         DocumentType
+  status       DocumentStatus @default(DRAFT)
+  clientId     String
+  totalHT      Decimal        @default(0.00) @db.Decimal(10, 3)
+  tva          Decimal        @default(0.00) @db.Decimal(10, 3)
+  timbreFiscal Decimal        @default(1.00) @db.Decimal(10, 3)
+  totalTTC     Decimal        @default(0.00) @db.Decimal(10, 3)
+  issueDate    DateTime       @default(now())
+  dueDate      DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
 
-  client        Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  lines         DocumentLine[]
-  payments      Payment[]
+  client   Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  lines    DocumentLine[]
+  payments Payment[]
 
   @@map("documents")
 }
 
 model DocumentLine {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   documentId String
   productId  String
-  quantity   Decimal  @db.Decimal(10, 3)
-  unitPrice  Decimal  @db.Decimal(10, 3)
-  totalPrice Decimal  @db.Decimal(10, 3)
+  quantity   Decimal @db.Decimal(10, 3)
+  unitPrice  Decimal @db.Decimal(10, 3)
+  totalPrice Decimal @db.Decimal(10, 3)
 
   // Cascade delete is permitted here: if a draft Document is permanently deleted, its lines vanish.
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@map("document_lines")
 }
@@ -243,11 +407,11 @@ model Payment {
   documentId String
   clientId   String
   amount     Decimal  @db.Decimal(10, 3)
-  method     String   
+  method     String
   date       DateTime @default(now())
 
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
-  client     Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  client   Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
 
   @@map("payments")
 }
