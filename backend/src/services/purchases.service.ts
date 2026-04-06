@@ -139,6 +139,13 @@ export class PurchasesService {
                 }
             }
 
+            // D. Financial Debt Accumulation algorithm.
+            // A validated Purchase naturally maps financial debt against the bounded Supplier.
+            await tx.supplier.update({
+                where: { id: document.supplierId },
+                data: { balanceDue: { increment: document.totalTTC } }
+            });
+
             return validatedDoc;
         });
     }
@@ -146,7 +153,7 @@ export class PurchasesService {
     static async getAll() {
         return prisma.purchaseDocument.findMany({
             where: { deletedAt: null },
-            include: { supplier: { select: { id: true, name: true } } }
+            include: { supplier: { select: { id: true, companyName: true } } }
         });
     }
 
@@ -154,7 +161,7 @@ export class PurchasesService {
         const doc = await prisma.purchaseDocument.findFirst({
             where: { id, deletedAt: null },
             include: {
-                supplier: { select: { id: true, name: true } },
+                supplier: { select: { id: true, companyName: true } },
                 lines: { include: { product: { select: { name: true, barcode: true } } } },
                 payments: true
             }

@@ -94,9 +94,11 @@ describe('Purchases API Endpoint Matrix', () => {
                     productId: 'product-x',
                     quantity: 50,
                     unitPrice: 200.0,
-                    product: { purchasePrice: 150.0 } // Discrepancy triggers Price Variation tracing!
+                    product: { purchasePrice: 150.0, sellingPrice: 200.0 } // Discrepancy triggers Price Variation tracing!
                 }
-            ]
+            ],
+            supplierId: 'supplier-alpha',
+            totalTTC: 11900.00
         } as any);
 
         prismaMock.purchaseDocument.update.mockResolvedValue({ id: 'valid-doc', status: 'VALIDATED' } as any);
@@ -123,6 +125,14 @@ describe('Purchases API Endpoint Matrix', () => {
         expect(prismaMock.priceHistory.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({ oldPurchasePrice: 150.0, newPurchasePrice: 200.0 })
+            })
+        );
+
+        // Assertion 4: Supplier Financial Debt naturally appended
+        expect(prismaMock.supplier.update).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { id: 'supplier-alpha' },
+                data: { balanceDue: { increment: 11900.00 } }
             })
         );
     });
