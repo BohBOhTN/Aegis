@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "0.2.0-alpha",
+  "version": "0.3.0",
   "description": "Enterprise API for Aegis ERP",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
