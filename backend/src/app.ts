@@ -5,6 +5,12 @@ import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/users.routes';
+import productRoutes from './routes/products.routes';
+import warehouseRoutes from './routes/warehouses.routes';
+import posRoutes from './routes/pos.routes';
+import categoryRoutes from './routes/categories.routes';
+import unitRoutes from './routes/units.routes';
+import purchaseRoutes from './routes/purchases.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { AppError } from './utils/AppError';
 
@@ -25,6 +31,12 @@ app.use(hpp());
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/units', unitRoutes);
+app.use('/api/v1/warehouses', warehouseRoutes);
+app.use('/api/v1/pos', posRoutes);
+app.use('/api/v1/purchases', purchaseRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: 'OK' });
