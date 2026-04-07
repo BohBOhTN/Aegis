@@ -16,6 +16,10 @@ import inventoryRoutes from './routes/inventory.routes';
 import clientRoutes from './routes/clients.routes';
 import documentRoutes from './routes/documents.routes';
 import paymentRoutes from './routes/payments.routes';
+import settingsRoutes from './routes/settings.routes';
+import expensesRoutes from './routes/expenses.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import auditRoutes from './routes/audit.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { AppError } from './utils/AppError';
 
@@ -47,6 +51,10 @@ app.use('/api/v1/inventory', inventoryRoutes);
 app.use('/api/v1/clients', clientRoutes);
 app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/settings', settingsRoutes);
+app.use('/api/v1/expenses', expensesRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/audit', auditRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: 'OK' });
