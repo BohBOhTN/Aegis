@@ -36,6 +36,7 @@ model User {
   role      Role                @relation(fields: [roleId], references: [id], onDelete: Restrict)
   auditLogs AuditLog[]
   movements InventoryMovement[]
+  expenses  Expense[]
 
   @@map("users")
 }
@@ -365,19 +366,23 @@ enum DocumentStatus {
 }
 
 model Document {
-  id           String         @id @default(uuid())
-  documentNum  String         @unique
-  type         DocumentType
-  status       DocumentStatus @default(DRAFT)
-  clientId     String
-  totalHT      Decimal        @default(0.00) @db.Decimal(10, 3)
-  tva          Decimal        @default(0.00) @db.Decimal(10, 3)
-  timbreFiscal Decimal        @default(1.00) @db.Decimal(10, 3)
-  totalTTC     Decimal        @default(0.00) @db.Decimal(10, 3)
-  issueDate    DateTime       @default(now())
+  id          String         @id @default(uuid())
+  documentNum String         @unique
+  type        DocumentType
+  status      DocumentStatus @default(DRAFT)
+  clientId    String
+
+  dispatchFromWarehouseId String?
+  dispatchFromPosId       String?
+
+  totalHT      Decimal   @default(0.00) @db.Decimal(10, 3)
+  tva          Decimal   @default(0.00) @db.Decimal(10, 3)
+  timbreFiscal Decimal   @default(1.00) @db.Decimal(10, 3)
+  totalTTC     Decimal   @default(0.00) @db.Decimal(10, 3)
+  issueDate    DateTime  @default(now())
   dueDate      DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
   client   Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
@@ -422,10 +427,48 @@ model Payment {
 model AppSettings {
   id                String   @id @default(uuid())
   companyName       String
+  matriculeFiscal   String?
+  address           String?
+  phone             String?
+  email             String?
   legalInfo         String?
   timbreFiscalPrice Decimal  @default(1.00) @db.Decimal(10, 3)
   defaultTva        Decimal  @default(19.00) @db.Decimal(5, 2)
   updatedAt         DateTime @updatedAt
 
   @@map("app_settings")
+}
+
+// -----------------------------------------------------------------------------
+// Treasury (Expenses)
+// -----------------------------------------------------------------------------
+model ExpenseCategory {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+model Expense {
+  id               String    @id @default(uuid())
+  categoryId       String
+  amount           Decimal   @db.Decimal(10, 3)
+  description      String
+  receiptUrl       String?
+  date             DateTime  @default(now())
+  recordedByUserId String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  category ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  user     User            @relation(fields: [recordedByUserId], references: [id], onDelete: Restrict)
+
+  @@map("expenses")
 }
