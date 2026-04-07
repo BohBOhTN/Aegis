@@ -13,6 +13,9 @@ import unitRoutes from './routes/units.routes';
 import purchaseRoutes from './routes/purchases.routes';
 import suppliersRoutes from './routes/suppliers.routes';
 import inventoryRoutes from './routes/inventory.routes';
+import clientRoutes from './routes/clients.routes';
+import documentRoutes from './routes/documents.routes';
+import paymentRoutes from './routes/payments.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { AppError } from './utils/AppError';
 
@@ -41,6 +44,9 @@ app.use('/api/v1/pos', posRoutes);
 app.use('/api/v1/purchases', purchaseRoutes);
 app.use('/api/v1/suppliers', suppliersRoutes);
 app.use('/api/v1/inventory', inventoryRoutes);
+app.use('/api/v1/clients', clientRoutes);
+app.use('/api/v1/documents', documentRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: 'OK' });
