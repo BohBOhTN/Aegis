@@ -31,6 +31,7 @@ describe('Sales Documents Core: Business Implementation Verification', () => {
         const token = authenticateAs('Manager');
 
         prismaMock.client.findUnique.mockResolvedValue({ id: 'c-1', deletedAt: null } as any);
+        prismaMock.appSettings.findFirst.mockResolvedValue({ defaultTva: 19.00, timbreFiscalPrice: 1.00 } as any);
 
         // HT = 1000. TVA (19%) = 190. Timbre = 1.0. TTC = 1191.0
         prismaMock.document.create.mockResolvedValue({
