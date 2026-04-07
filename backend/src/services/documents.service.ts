@@ -1,6 +1,7 @@
 import prisma from '../utils/prisma';
 import { AppError } from '../utils/AppError';
 import { DocumentStatus, DocumentType, MovementType } from '@prisma/client';
+import { SettingsService } from './settings.service';
 
 export class DocumentsService {
     /**
@@ -24,8 +25,9 @@ export class DocumentsService {
         }
 
         const totalHT = data.lines.reduce((sum, line) => sum + line.totalPrice, 0);
-        const tva = totalHT * 0.19; // Natively fixed 19%
-        const timbreFiscal = 1.00; // Fixed Timbre as per Schema Defaults
+        const settings = await SettingsService.getGlobalSettings();
+        const tva = totalHT * (Number(settings.defaultTva) / 100); 
+        const timbreFiscal = Number(settings.timbreFiscalPrice); 
         const totalTTC = totalHT + tva + timbreFiscal;
 
         // Custom validation: Client Must Exist natively
