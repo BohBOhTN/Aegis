@@ -1,0 +1,48 @@
+:root {
+  /* Brand Colors */
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary-color: #475569;
+  
+  /* Backgrounds */
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  
+  /* States */
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  
+  /* Borders */
+  --border-color: #e2e8f0;
+  
+  /* Shadows & Layout */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg-main: #0f172a;
+  --bg-surface: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --border-color: #334155;
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
