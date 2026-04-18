@@ -24,4 +24,4 @@ This module executes the primary business logic, database transactions, network 
 4. Boot the server in development mode to monitor inbound traffic: `npm run dev`.
 
 ## 4. Code Standards
-Committing to the backend must strictly align with the global repository directives established in `docs/00_Development_Rules.md`. Ensure no business logic is housed within routing controllers; all core algorithmic and calculation operations must reside cleanly within the designated Services layer.
+Committing to the backend must strictly align with the internal engineering standards established for the project. Ensure no business logic is housed within routing controllers; all core algorithmic and calculation operations must reside cleanly within the designated Services layer.

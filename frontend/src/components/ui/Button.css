@@ -1,0 +1,79 @@
+.aegis-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.aegis-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.aegis-button.full-width {
+  width: 100%;
+}
+
+/* Primary */
+.aegis-button.primary {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+.aegis-button.primary:not(:disabled):hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+.aegis-button.primary:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Secondary */
+.aegis-button.secondary {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+.aegis-button.secondary:not(:disabled):hover {
+  background-color: var(--border-color);
+}
+
+/* Danger */
+.aegis-button.danger {
+  background-color: var(--danger);
+  color: white;
+}
+.aegis-button.danger:not(:disabled):hover {
+  background-color: #dc2626;
+}
+
+/* Ghost */
+.aegis-button.ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+.aegis-button.ghost:not(:disabled):hover {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+}
+
+/* Spinner Animation */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
